@@ -1,10 +1,37 @@
 from flask import Flask, request, jsonify
 import pandas as pd
 import pickle
+from dotenv import load_dotenv
 import os
+from simple_salesforce import Salesforce
+
+load_dotenv()
 
 app = Flask(__name__)
 
+# Get Salesforce credentials from environment variables
+client_id = os.environ.get('CLIENT_ID')
+client_secret = os.environ.get('CLIENT_SECRET')
+username = os.environ.get('SF_USERNAME')
+password = os.environ.get('PASSWORD')
+security_token = os.environ.get('SECURITY_TOKEN')
+instance_url = os.environ.get('SALESFORCE_INSTANCE_URL')
+
+
+print('CLIENT ID ' + client_id)
+print('CLIENT SECRET ' + client_secret)
+print('SF_USERNAME ' + username)
+print('PASSW ' + password)
+print('SEC TOKEN ' + security_token)
+print('URL ' + instance_url)
+
+# Authenticate with Salesforce
+sf = Salesforce(
+    username=username,
+    password=password,
+    security_token=security_token,
+    domain='test'  # Use 'test' for sandbox or 'login' for production
+)
 # Load the trained model, ColumnTransformer, and StandardScaler
 model = pickle.load(open('model.pkl', 'rb'))
 ct = pickle.load(open('column_transformer.pkl', 'rb'))
