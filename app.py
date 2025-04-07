@@ -29,9 +29,10 @@ print('URL ' + instance_url)
 sf = Salesforce(
     username=username,
     password=password,
-    security_token=security_token,
-    domain='test'  # Use 'test' for sandbox or 'login' for production
+    security_token=security_token
+    #domain='test'  # Use 'test' for sandbox or 'login' for production
 )
+
 # Load the trained model, ColumnTransformer, and StandardScaler
 model = pickle.load(open('model.pkl', 'rb'))
 ct = pickle.load(open('column_transformer.pkl', 'rb'))
