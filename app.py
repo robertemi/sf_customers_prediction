@@ -17,14 +17,6 @@ password = os.environ.get('PASSWORD')
 security_token = os.environ.get('SECURITY_TOKEN')
 instance_url = os.environ.get('SALESFORCE_INSTANCE_URL')
 
-
-print('CLIENT ID ' + client_id)
-print('CLIENT SECRET ' + client_secret)
-print('SF_USERNAME ' + username)
-print('PASSW ' + password)
-print('SEC TOKEN ' + security_token)
-print('URL ' + instance_url)
-
 # Authenticate with Salesforce
 sf = Salesforce(
     username=username,
@@ -48,8 +40,10 @@ def predict():
     data = request.json  # Expecting a list of customer records
     df = pd.DataFrame(data)
 
+    names = df['Name']
+    X = df.drop(columns=['Name'])
     # Transform the data using the saved ColumnTransformer
-    X = ct.transform(df)
+    X = ct.transform(X)
 
     # Standardize the data using the saved StandardScaler
     X = sc.transform(X)
@@ -62,7 +56,7 @@ def predict():
     response = []
     for i, prediction in enumerate(predictions):
         response.append({
-            'Customer': df.iloc[i]['Name'],  # Assuming 'Name' is in the input data
+            'Customer': names[i],  # Assuming 'Name' is in the input data
             'Prediction': 'Will Continue' if prediction == 1 else 'Will Not Continue',
             'Probability': probabilities[i]
         })
