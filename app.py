@@ -36,29 +36,61 @@ def home():
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    # Get the input data from the request
-    data = request.json  # Expecting a list of customer records
-    df = pd.DataFrame(data)
+    try:
+        # Get the input data from the request
+        data = request.json  # Expecting a list of customer records
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
 
-    name = df['Name']
-    X = df.drop(columns=['Name'])
-    # Transform the data using the saved ColumnTransformer
-    X = ct.transform(X)
+        # Convert the input data to a DataFrame
+        try:
+            df = pd.DataFrame(data)
+        except Exception as e:
+            return jsonify({'error': f'Error creating DataFrame: {str(e)}'}), 400
 
+        # Ensure required columns are present
+        required_columns = ['Name', 'Account Industry', 'Net Revenue Per Quarter',
+                            'Days Since Last Deal', 'New Customer', 'Successful Deals Closed']
+        missing_columns = [col for col in required_columns if col not in df.columns]
+        if missing_columns:
+            return jsonify({'error': f'Missing columns: {missing_columns}'}), 400
 
-    # Standardize the data using the saved StandardScaler
-    X = sc.transform(X)
+        # Extract the Name column and prepare the input features
+        name = df['Name']
+        X = df.drop(columns=['Name'])
 
-    # Make predictions
-    prediction = model.predict(X)
-    probability = model.predict_proba(X)[:, 1]  # Assuming binary classification
+        # Transform the data using the saved ColumnTransformer
+        try:
+            X = ct.transform(X)
+        except Exception as e:
+            return jsonify({'error': f'Error transforming data: {str(e)}'}), 500
 
-    # Return predictions and probabilities
-    response = [{'Customer ': name,
-                 'Prediction': 'Will Continue' if prediction >= 0.55 else 'Will Not Continue',
-                 'Probability': probability}]
+        # Standardize the data using the saved StandardScaler
+        try:
+            X = sc.transform(X)
+        except Exception as e:
+            return jsonify({'error': f'Error scaling data: {str(e)}'}), 500
 
-    return jsonify(response)
+        # Make predictions
+        try:
+            prediction = model.predict(X)
+            probability = model.predict_proba(X)[:, 1]  # Assuming binary classification
+        except Exception as e:
+            return jsonify({'error': f'Error making predictions: {str(e)}'}), 500
+
+        # Prepare the response
+        response = []
+        for i in range(len(name)):
+            response.append({
+                'Customer': name.iloc[i],
+                'Prediction': 'Will Continue' if probability[i] >= 0.55 else 'Will Not Continue',
+                'Probability': probability[i]
+            })
+
+        return jsonify(response)
+
+    except Exception as e:
+        return jsonify({'error': f'Internal server error: {str(e)}'}), 500
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
