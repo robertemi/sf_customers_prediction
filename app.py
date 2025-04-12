@@ -82,7 +82,7 @@ def predict():
         response = []
         for i in range(len(name)):
             response.append({
-                'Customer': name.iloc[i],
+                'Customer': name,
                 'Prediction': prediction,
                 'Probability': probability[i]
             })
