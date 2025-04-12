@@ -56,7 +56,7 @@ def predict():
             return jsonify({'error': f'Missing columns: {missing_columns}'}), 400
 
         # Extract the Name column and prepare the input features
-        name = df['Name'].iloc[0]
+        name = df['Name'].values[0]
         X = df.drop(columns=['Name'])
 
         # Transform the data using the saved ColumnTransformer
