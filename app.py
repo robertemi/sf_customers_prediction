@@ -38,13 +38,13 @@ def home():
 def predict():
     try:
         # Get the input data from the request
-        data = request.json  # Expecting a list of customer records
+        data = request.json  # Expecting a single customer record as a dictionary
         if not data:
             return jsonify({'error': 'No data provided'}), 400
 
-        # Convert the input data to a DataFrame
+        # Convert the input data to a DataFrame with a single row
         try:
-            df = pd.DataFrame(data)
+            df = pd.DataFrame([data])  # Wrap the dictionary in a list to create a single-row DataFrame
         except Exception as e:
             return jsonify({'error': f'Error creating DataFrame: {str(e)}'}), 400
 
@@ -56,7 +56,7 @@ def predict():
             return jsonify({'error': f'Missing columns: {missing_columns}'}), 400
 
         # Extract the Name column and prepare the input features
-        name = df['Name'].values[0]
+        name = df['Name'].values[0]  # Use .values[0] to get the first value as a string
         X = df.drop(columns=['Name'])
 
         # Transform the data using the saved ColumnTransformer
@@ -73,25 +73,22 @@ def predict():
 
         # Make predictions
         try:
-            prediction = model.predict(X)
-            probability = model.predict_proba(X)[:, 1]  # Assuming binary classification
+            prediction = model.predict(X)[0]  # Get the single prediction
+            probability = model.predict_proba(X)[0, 1]  # Get the probability for the positive class
         except Exception as e:
             return jsonify({'error': f'Error making predictions: {str(e)}'}), 500
 
         # Prepare the response
-        response = []
-        for i in range(len(name)):
-            response.append({
-                'Customer': name,
-                'Prediction': prediction,
-                'Probability': probability[i]
-            })
+        response = {
+            'Customer': name,
+            'Prediction': prediction,
+            'Probability': probability
+        }
 
         return jsonify(response)
 
     except Exception as e:
         return jsonify({'error': f'Internal server error: {str(e)}'}), 500
-
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
