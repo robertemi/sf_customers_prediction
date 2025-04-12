@@ -40,26 +40,23 @@ def predict():
     data = request.json  # Expecting a list of customer records
     df = pd.DataFrame(data)
 
-    names = df['Name']
+    name = df['Name']
     X = df.drop(columns=['Name'])
     # Transform the data using the saved ColumnTransformer
     X = ct.transform(X)
+
 
     # Standardize the data using the saved StandardScaler
     X = sc.transform(X)
 
     # Make predictions
-    predictions = model.predict(X)
-    probabilities = model.predict_proba(X)[:, 1]  # Assuming binary classification
+    prediction = model.predict(X)
+    probability = model.predict_proba(X)[:, 1]  # Assuming binary classification
 
     # Return predictions and probabilities
-    response = []
-    for i, prediction in enumerate(predictions):
-        response.append({
-            'Customer': names[i],  # Assuming 'Name' is in the input data
-            'Prediction': 'Will Continue' if prediction == 1 else 'Will Not Continue',
-            'Probability': probabilities[i]
-        })
+    response = [{'Customer ': name,
+                 'Prediction': 'Will Continue' if prediction >= 0.55 else 'Will Not Continue',
+                 'Probability': probability}]
 
     return jsonify(response)
 
