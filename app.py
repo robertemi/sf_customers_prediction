@@ -22,7 +22,6 @@ sf = Salesforce(
     username=username,
     password=password,
     security_token=security_token
-    #domain='test'  # Use 'test' for sandbox or 'login' for production
 )
 
 # Load the trained model, ColumnTransformer, and StandardScaler
@@ -81,8 +80,8 @@ def predict():
         # Prepare the response
         response = {
             'Customer': name,
-            'Prediction': prediction,
-            'Probability': probability
+            'Prediction': int(prediction),
+            'Probability': float(probability)
         }
 
         return jsonify(response)
